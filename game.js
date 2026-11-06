@@ -271,10 +271,13 @@
 
   // ---------- Sons (synthétisés, aucun fichier) ----------
   const SON = (() => {
-    let ctx = null, actif = true;
+    let ctx = null, maitre = null, actif = true;
     try { actif = localStorage.getItem("bt-son") !== "0"; } catch (e) { /* tant pis */ }
     const C = () => {
-      if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+      if (!ctx) {
+        try { ctx = window.__AC || (window.__AC = new (window.AudioContext || window.webkitAudioContext)()); } catch (e) { return null; }
+        try { maitre = ctx.createGain(); maitre.gain.value = 2.5; maitre.connect(ctx.destination); } catch (e) { maitre = null; }
+      }
       if (ctx.state === "suspended") ctx.resume();
       return ctx;
     };
@@ -290,7 +293,7 @@
         if (fin) o.frequency.linearRampToValueAtTime(fin, t + d);
         g.gain.setValueAtTime(vol || 0.04, t);
         g.gain.exponentialRampToValueAtTime(0.0001, t + d);
-        o.connect(g); g.connect(c.destination);
+        o.connect(g); g.connect(maitre || c.destination);
         o.start(t); o.stop(t + d + 0.03);
       } catch (e) { /* pas de son, tant pis */ }
     }
@@ -764,7 +767,7 @@
       else SON.clic();
     });
     const sonBtn = $("#btn-son");
-    const majSon = () => { sonBtn.textContent = SON.actif ? "\u{1F50A}" : "\u{1F507}"; sonBtn.setAttribute("aria-pressed", SON.actif); sonBtn.title = SON.actif ? "Couper le son" : "Remettre le son"; };
+    const majSon = () => { sonBtn.textContent = SON.actif ? "Son" : "Muet"; sonBtn.setAttribute("aria-pressed", SON.actif); sonBtn.title = SON.actif ? "Couper le son" : "Remettre le son"; };
     sonBtn.onclick = () => { SON.basculer(); majSon(); };
     majSon();
     $("#btn-commencer").onclick = lancerJour;

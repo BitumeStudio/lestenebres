@@ -174,7 +174,8 @@
   function piece() {
     try {
       const A = window.AudioContext || window.webkitAudioContext;
-      const ctx = new A();
+      const ctx = window.__AC || (window.__AC = new A());
+      if (ctx.state === "suspended") ctx.resume();
       [[988, 0], [1319, 0.08]].forEach(([f, d]) => {
         const o = ctx.createOscillator(), v = ctx.createGain();
         o.type = "square"; o.frequency.value = f; v.gain.value = 0.05;
