@@ -336,7 +336,7 @@
     $("#btn-soir").classList.toggle("pulse", fini);
     // le dernier jour se joue avant l'aube : les textes de fin de journée viennent alors des données
     const T = jour.textesFin || {};
-    $("#btn-soir").textContent = fini ? (T.boutonFini || "La sonnerie a retenti : passer au soir") : (T.bouton || "Passer au soir");
+    $("#btn-soir").textContent = fini ? (T.boutonFini || "La sonnerie a retenti : terminer la journée") : (T.bouton || "Terminer la journée");
   }
 
   function nbEleves(zone) {
@@ -441,7 +441,7 @@
       }, ""));
     });
     if (!choix.children.length) choix.append(el("p", "vide", "Tu as fait le tour. Rien de plus à tirer de " + p.nom + " aujourd'hui."));
-    else if (plusDeTemps) choix.append(el("p", "vide", ((jour.textesFin || {}).plusDeTemps || "La sonnerie a retenti à {heure}. La journée est finie, passe au soir.").replace("{heure}", heure())));
+    else if (plusDeTemps) choix.append(el("p", "vide", ((jour.textesFin || {}).plusDeTemps || "La sonnerie a retenti à {heure}. La journée est finie : tu peux la terminer.").replace("{heure}", heure())));
     else if (S.actions <= 3) choix.append(el("p", "vide alerte", "Plus que " + S.actions + " action" + (S.actions > 1 ? "s" : "") + " avant la sonnerie."));
     box.append(choix);
     log.scrollTop = log.scrollHeight;
