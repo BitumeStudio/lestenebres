@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0b0e1c">
+<meta name="description" content="Un jeu d'enquête au lycée : démasque les policiers infiltrés avant le blocus. Fiction.">
+<title>Bismillah c'est les ténèbres</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230b0e1c'/%3E%3Crect x='5' y='3' width='6' height='7' fill='%23e0b190'/%3E%3Crect x='4' y='2' width='8' height='3' fill='%232b2f3a'/%3E%3Crect x='3' y='11' width='10' height='5' fill='%23f2a33a'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="fonts/polices.css">
+<style>
+/* Mise en page : une cour de lycée la nuit, éclairée par un lampadaire au sodium. Scène à gauche, conversation au centre, carnet à droite. */
+:root {
+  --nuit: #0b0e1c;
+  --encre: #151a30;
+  --mur: #1e2440;
+  --craie: #ece6d6;
+  --brume: #8d93b0;
+  --sodium: #f2a33a;
+  --sang: #e04a3f;
+  --menthe: #74c79a;
+  --f-titre: "Pixelify Sans", "Courier New", monospace;
+  --f-label: "Silkscreen", "Courier New", monospace;
+  --f-texte: "Atkinson Hyperlegible", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; }
+body { margin: 0; }
+body {
+  background:
+    radial-gradient(ellipse 60% 40% at 85% 0%, rgba(242,163,58,.14), transparent 70%),
+    var(--nuit);
+  color: var(--craie);
+  font: 16px/1.5 var(--f-texte);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+body::after {
+  content: ""; position: fixed; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.12) 0 1px, transparent 1px 2px);
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--sodium); outline-offset: 2px; }
+.portrait { image-rendering: pixelated; flex: none; background: var(--mur); }
+.portrait.mini { image-rendering: auto; }
+.vide { color: var(--brume); font-style: italic; margin: 0; }
+h1, h2, h3, h4 { font-family: var(--f-texte); font-weight: 700; margin: 0; text-wrap: balance; }
+
+/* ----- Intro ----- */
+#ecran-intro { max-width: 680px; margin: 0 auto; padding-block: 56px 48px; display: grid; gap: 24px; }
+.titre {
+  font-family: var(--f-titre);
+  font-size: clamp(2.4rem, 9vw, 4.4rem); line-height: .95; letter-spacing: .01em;
+  color: var(--craie); text-shadow: 0 0 18px rgba(242,163,58,.35);
+}
+.titre em { font-style: normal; color: var(--sodium); display: block; animation: neon 6s infinite steps(1); }
+@keyframes neon { 0%,100%{opacity:1} 71%{opacity:.25} 72%{opacity:1} 74%{opacity:.4} 75%{opacity:1} }
+@media (prefers-reduced-motion: reduce) { .titre em, .pulse, .verdict, .ligne.note-carnet { background: none; border-left: 3px solid var(--sodium); color: var(--sodium); font-size: .9rem; }
+.refus { margin: 0; padding: 10px 12px; border-left: 3px solid var(--sang); font-style: italic; }
+.vide.alerte { color: var(--sang); font-style: normal; }
+.verdict.nuit { border-color: var(--brume); color: var(--brume); }
+.hud-bloc.urgent b { animation: none !important; } }
+.eyebrow { font-family: var(--f-label); text-transform: uppercase; letter-spacing: .14em; font-size: .8rem; color: var(--brume); }
+#intro-texte { display: grid; gap: 12px; font-size: 1.08rem; max-width: 62ch; }
+#intro-texte p { margin: 0; }
+.regles { border-left: 3px solid var(--sodium); padding: 4px 0 4px 14px; color: var(--brume); margin: 0; }
+.avert { font-size: .85rem; color: var(--brume); margin: 0; }
+.btn {
+  font-family: var(--f-label); font-size: .95rem; letter-spacing: .02em;
+  background: var(--sodium); color: var(--nuit); border: 0; padding: 14px 22px;
+  box-shadow: 4px 4px 0 #7a4a10; justify-self: start;
+}
+.btn:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 #7a4a10; }
+.btn.secondaire { background: transparent; color: var(--craie); box-shadow: inset 0 0 0 2px var(--brume); }
+
+
+/* ----- Comment jouer ----- */
+#ecran-regles { max-width: 680px; margin: 0 auto; padding-block: 56px 48px; display: grid; gap: 22px; }
+.regle-carte { border: 3px solid var(--mur); border-left: 6px solid var(--sodium); background: rgba(8,11,24,.6); padding: 22px 20px; display: grid; gap: 12px; min-height: 17rem; align-content: start; }
+.regle-carte h2 { font-family: var(--f-titre); font-size: clamp(1.5rem, 5vw, 2.2rem); color: var(--sodium); line-height: 1.05; }
+.regle-carte p { margin: 0; font-size: 1.08rem; max-width: 56ch; }
+.regle-carte .astuce { font-size: .95rem; color: var(--brume); border-left: 3px solid var(--mur); padding-left: 12px; }
+.regle-points { display: flex; gap: 8px; }
+.regle-points i { width: 12px; height: 12px; background: var(--mur); }
+.regle-points i.on { background: var(--sodium); }
+#btn-regles { padding: 14px 16px; }
+
+/* ----- Écran titre ----- */
+#ecran-titre { padding-block: 24px; display: grid; place-items: center; min-height: calc(100svh - 8px); }
+.borne {
+  position: relative; width: 100%; max-width: 1040px; aspect-ratio: 16 / 9; overflow: hidden;
+  border: 3px solid var(--mur); box-shadow: 0 0 0 6px #05060c, 0 0 60px rgba(242,163,58,.12);
+}
+#titre-scene { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; cursor: pointer; }
+.borne::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 3px), radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.55)); }
+.borne-haut, .borne-bas { position: absolute; left: 3%; right: 3%; display: flex; justify-content: space-between; gap: 12px;
+  font-family: var(--f-label); font-size: clamp(.55rem, 1.6vw, .85rem); letter-spacing: .08em; color: var(--craie); pointer-events: none; }
+.borne-haut { top: 4%; }
+.borne-haut span:first-child { color: var(--sang); }
+.borne-bas { bottom: 4%; color: var(--brume); }
+.borne-titre { position: absolute; left: 0; right: 0; top: 9%; text-align: center; pointer-events: none; display: grid; gap: 6px; justify-items: center; }
+.borne-titre .titre { font-size: clamp(1.8rem, 7.4vw, 5rem); text-shadow: 0 3px 0 #05060c, 0 0 24px rgba(242,163,58,.4); animation: arrivee 1.2s steps(8) both; }
+.borne-sous { position: absolute; left: 0; right: 0; bottom: 22%; text-align: center; margin: 0 auto; pointer-events: none; font-family: var(--f-texte); font-weight: 700; font-size: clamp(.8rem, 2vw, 1.1rem); color: var(--craie); max-width: 46ch; padding: 10px 16px; background: rgba(8,11,24,.78); border: 2px solid var(--mur); }
+.borne-titre .studio { margin: 0; font-family: var(--f-label); text-transform: uppercase; letter-spacing: .22em; font-size: clamp(.6rem, 1.8vw, 1rem); color: var(--sodium); text-shadow: 0 2px 0 #05060c; }
+.borne-titre .lycee { margin: 6px 0 0; font-family: var(--f-label); text-transform: uppercase; letter-spacing: .16em; font-size: clamp(.85rem, 2.6vw, 1.5rem); color: var(--craie); background: rgba(8,11,24,.82); border: 2px solid var(--sodium); padding: 6px 14px; text-shadow: 0 2px 0 #05060c; }
+@keyframes arrivee { from { transform: translateY(-120%); } }
+.borne-start {
+  position: absolute; left: 50%; bottom: 13%; transform: translateX(-50%);
+  font-family: var(--f-label); font-size: clamp(.7rem, 2.2vw, 1.15rem); letter-spacing: .12em; text-transform: uppercase;
+  background: none; border: 0; color: var(--sodium); text-shadow: 0 2px 0 #05060c; animation: cligne 1s steps(1) infinite;
+}
+@keyframes cligne { 50% { opacity: 0; } }
+.lance .borne-start { animation: cligne .12s steps(1) infinite; }
+.lance .borne { animation: flash .7s steps(4) both; }
+@keyframes flash { 60% { filter: brightness(1.8); } 100% { filter: brightness(0); } }
+@media (prefers-reduced-motion: reduce) { .borne-titre .titre, .borne-start, .lance .borne { animation: none !important; } }
+@media (max-width: 560px) {
+  .borne { aspect-ratio: 3 / 4; }
+  #titre-scene { object-fit: cover; object-position: 50% 85%; }
+  .borne-titre { top: 11%; }
+  .borne-sous { bottom: 15%; left: 6%; right: 6%; font-size: .85rem; max-width: none; }
+  .borne-start { bottom: 7%; font-size: .85rem; }
+}
+
+/* ----- HUD ----- */
+.hud {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px;
+  padding-block: 12px; background: var(--nuit); border-bottom: 2px solid var(--mur);
+}
+.hud-bloc { display: flex; align-items: baseline; gap: 8px; font-variant-numeric: tabular-nums; }
+.hud-bloc b { font-family: var(--f-texte); font-weight: 700; font-size: 1.6rem; letter-spacing: .02em; color: var(--sodium); }
+.hud-label { font-family: var(--f-texte); font-weight: 700; font-size: .85rem; text-transform: uppercase; letter-spacing: .1em; color: var(--brume); }
+.jauge { width: 120px; height: 10px; background: var(--mur); position: relative; align-self: center; }
+.jauge i { position: absolute; inset: 0 auto 0 0; background: var(--menthe); transition: width 1.2s ease; }
+.hud .espace { flex: 1; }
+#btn-soir.pulse { animation: pulse 1.2s infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(242,163,58,.25), 4px 4px 0 #7a4a10; } }
+#btn-carnet { display: none; }
+
+/* ----- Jeu ----- */
+.jeu { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.25fr) minmax(0, .9fr); gap: 20px; padding-block: 20px 48px; }
+#zones { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.zone {
+  background: var(--encre); border: 2px solid var(--mur); padding: 6px 10px;
+  display: grid; text-align: left; line-height: 1.2;
+}
+.zone.active { border-color: var(--sodium); background: var(--mur); }
+.zone-nom { font-family: var(--f-label); font-size: .9rem; }
+.zone-nb { font-size: .75rem; color: var(--brume); }
+#scene { background: var(--encre); padding: 16px; display: grid; gap: 12px; border-top: 4px solid var(--mur); }
+#scene-decor { margin: 0; color: var(--brume); font-style: italic; }
+#scene-pnj { display: grid; gap: 10px; }
+.carte {
+  display: flex; gap: 12px; align-items: center; text-align: left;
+  background: var(--nuit); border: 2px solid transparent; padding: 8px;
+}
+.carte:hover { border-color: var(--mur); }
+.carte.active { border-color: var(--sodium); }
+.carte-txt { display: grid; gap: 2px; min-width: 0; }
+.carte-txt strong { font-size: 1.1rem; }
+.carte-posture { font-size: .9rem; color: var(--brume); margin: 0; }
+.tag { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; padding: 1px 6px; justify-self: start; }
+.tag.suspect { background: var(--sang); color: var(--nuit); }
+.tag.innocent { background: var(--menthe); color: var(--nuit); }
+.tag.neutre { background: var(--mur); color: var(--brume); }
+
+#dialogue { scroll-margin-top: 140px; background: var(--encre); padding: 16px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.dia-tete { display: flex; gap: 14px; align-items: center; }
+.dia-tete h3 { font-size: 1.6rem; }
+.dia-log { display: grid; gap: 8px; max-height: 340px; overflow-y: auto; }
+.ligne { margin: 0; padding: 8px 12px; max-width: 62ch; }
+.ligne.toi { justify-self: end; background: var(--mur); color: var(--sodium); }
+.ligne.eux { background: var(--nuit); border-left: 3px solid var(--brume); }
+.dia-choix { display: grid; gap: 8px; }
+.choix {
+  display: flex; justify-content: space-between; gap: 12px; text-align: left;
+  background: transparent; border: 2px solid var(--mur); padding: 10px 12px;
+}
+.choix:hover:not(:disabled) { border-color: var(--sodium); }
+.choix:disabled { opacity: .4; cursor: not-allowed; }
+.noter { display: grid; gap: 4px; text-align: left; width: 100%; padding: 10px 12px; margin: 6px 0; background: transparent; color: var(--craie); border: 2px dashed var(--sodium); font: inherit; cursor: pointer; }
+.noter:hover:not(:disabled) { background: rgba(240,160,48,.12); }
+.noter-etat { font-family: var(--f-label); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--sodium); }
+.noter.fait { border-style: solid; border-color: var(--menthe); opacity: .75; cursor: default; }
+.noter.fait .noter-etat { color: var(--menthe); }
+.choix.nouveau { border-color: var(--sang); }
+.choix.nouveau::before { content: "!"; font-family: var(--f-label); color: var(--sang); }
+.cout { font-size: .78rem; color: var(--brume); white-space: nowrap; align-self: center; }
+
+#carnet { background: #ece6d6; color: #1a1712; padding: 16px; align-self: start; display: grid; gap: 12px; align-content: start;
+  position: sticky; top: 84px; max-height: calc(100vh - 100px); max-height: calc(100dvh - 100px); overflow-y: auto; overscroll-behavior: contain;
+  background-image: repeating-linear-gradient(0deg, transparent 0 25px, rgba(40,70,140,.18) 25px 26px); }
+#carnet .vide { color: #5a5446; }
+.carnet-tete { display: flex; justify-content: space-between; align-items: center; }
+.carnet-tete h2 { font-size: 1.3rem; }
+#btn-carnet-fermer { display: none; background: none; border: 0; font-size: 1.4rem; }
+.groupe { display: grid; gap: 6px; }
+.groupe h4 { display: flex; gap: 8px; align-items: center; font-size: 1rem; }
+.note { margin: 0; font-size: .9rem; padding-left: 10px; border-left: 3px solid #b8ae96; display: grid; gap: 4px; }
+.note p { margin: 0; }
+.note.classee-suspect { border-color: var(--sang); }
+.note.classee-alibi { border-color: #3d8c5e; }
+.classer { display: flex; flex-wrap: wrap; gap: 4px; }
+.classer button { font-size: .72rem; padding: 2px 7px; background: transparent; color: #4a4436; border: 1px solid #b8ae96; }
+.classer button.on { background: #1a1712; color: #ece6d6; border-color: #1a1712; }
+.classee-suspect .classer button.on { background: var(--sang); border-color: var(--sang); color: #1a1712; }
+.classee-alibi .classer button.on { background: #3d8c5e; border-color: #3d8c5e; color: #ece6d6; }
+.hud-bloc.urgent b { color: var(--sang); animation: pulse-txt 1s infinite; }
+@keyframes pulse-txt { 50% { opacity: .45; } }
+.preuves { margin: 8px 0 0; padding-left: 18px; font-size: .88rem; display: grid; gap: 2px; }
+.preuves .vraie { color: var(--menthe); }
+.preuves .fausse { color: var(--sang); }
+
+/* ----- Soir ----- */
+#ecran-soir, #ecran-bilan { max-width: 880px; margin: 0 auto; padding-block: 40px 56px; display: grid; gap: 20px; }
+#soir-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.suspect-carte { background: var(--encre); border: 2px solid var(--mur); padding: 12px; display: grid; gap: 6px; justify-items: center; }
+.suspect-carte.choisi { border-color: var(--sang); background: #2a1420; }
+.suspect-carte strong { font-size: 1.1rem; }
+.suspect-carte .tag { justify-self: center; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* ----- Bilan ----- */
+#bilan-liste { display: grid; gap: 12px; }
+.verdict { display: flex; gap: 16px; background: var(--encre); padding: 14px; border-left: 4px solid var(--brume); animation: entre .5s both; }
+.verdict > div { min-width: 0; }
+.verdict p { margin: 4px 0 0; }
+.verdict.demasque { border-color: var(--menthe); }
+.verdict.accuseATort { border-color: var(--sang); }
+.verdict.rate, .verdict.sansPreuve { border-color: var(--sodium); }
+.grade { font-family: var(--f-label); font-size: .85rem; color: var(--sodium); }
+.delta { font-size: .85rem; color: var(--brume); font-variant-numeric: tabular-nums; }
+@keyframes entre { from { opacity: .2; transform: translateY(8px); } }
+.epilogue { font-size: 1.15rem; font-style: italic; max-width: 62ch; margin: 0; }
+.final { display: grid; gap: 14px; padding: 20px; background: var(--encre); border-top: 4px solid var(--sodium); }
+.final .titre { font-size: clamp(1.8rem, 5vw, 3rem); }
+.partage { font-size: .78rem; text-transform: uppercase; letter-spacing: .1em; color: var(--brume); }
+#final-partage { font: inherit; color: var(--craie); background: var(--nuit); border: 2px solid var(--mur); padding: 10px 12px; width: 100%; min-width: 0; }
+#final-partage:focus-visible { outline: 2px solid var(--sodium); outline-offset: 2px; }
+.bilan-jauge { width: 100%; max-width: 420px; height: 14px; }
+
+
+
+/* ----- Téléphone et tablette ----- */
+@media (max-width: 980px) {
+  .jeu { grid-template-columns: minmax(0, 1fr); }
+  #btn-carnet { display: inline-block; }
+  #carnet { position: fixed; z-index: 15; inset: 0 0 0 auto; height: 100vh; height: 100dvh; max-height: none; align-self: stretch; width: min(380px, 92vw); overflow-y: auto; align-content: start;
+    transform: translateX(105%); transition: transform .25s; padding-top: calc(16px + env(safe-area-inset-top, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  body.carnet-ouvert #carnet { transform: none; box-shadow: -20px 0 40px rgba(0,0,0,.6); }
+  #btn-carnet-fermer { display: block; }
+  .hud .espace { display: none; }
+}
+@media (max-width: 480px) {
+  .verdict { flex-direction: column; }
+  .jauge { width: 80px; }
+}
+</style>
+</head>
+<body>
+<section class="ecran" id="ecran-titre">
+  <div class="borne">
+    <canvas id="titre-scene" width="480" height="270" aria-hidden="true"></canvas>
+    <div class="borne-haut"><span>1UP 00</span><span>RECORD · CONFIANCE 100</span></div>
+    <div class="borne-titre">
+      <p class="studio">Bitume Studio présente</p>
+      <h1 class="titre">Bismillah<em>c'est les ténèbres</em></h1>
+      <p class="lycee">Lycée Jean-Moulin</p>
+    </div>
+    <p class="borne-sous">Ils parlent comme nous. Ils s'habillent comme nous. Mais ils ne sont pas des nôtres.</p>
+    <button class="borne-start" type="button" id="btn-inserer">Appuie sur Entrée</button>
+    <div class="borne-bas"><span id="titre-credit">CRÉDIT 00</span><span>BITUME STUDIO · © 2026 · FICTION</span></div>
+  </div>
+</section>
+
+<section class="ecran" id="ecran-regles" hidden>
+  <p class="eyebrow">Comment jouer · <span id="regle-num">1</span>/4</p>
+  <div id="regle-carte" class="regle-carte" aria-live="polite"></div>
+  <div class="regle-points" id="regle-points" aria-hidden="true"></div>
+  <div class="actions">
+    <button class="btn" type="button" id="btn-regle-suivant">Suivant</button>
+    <button class="btn secondaire" type="button" id="btn-regle-passer">Passer</button>
+  </div>
+</section>
+
+<section class="ecran" id="ecran-intro" hidden>
+  <p class="eyebrow" id="intro-jour">Bismillah c'est les ténèbres</p>
+  <h1 class="titre" id="intro-titre">Chargement…</h1>
+  <div id="intro-texte"></div>
+  <p class="regles" id="intro-regles"></p>
+  <button class="btn" type="button" id="btn-commencer">Entrer dans la cour</button>
+  <p class="avert">Fiction. Les personnages, le lycée et les événements sont inventés.</p>
+</section>
+
+<section class="ecran" id="ecran-jeu" hidden>
+  <header class="hud">
+    <div class="hud-bloc"><span class="hud-label" id="hud-jour">Jour 1</span><b id="hud-heure">08h00</b></div>
+    <div class="hud-bloc"><span class="hud-label">Actions</span><b id="hud-actions">14</b></div>
+    <div class="hud-bloc"><span class="hud-label">Confiance</span><span class="jauge"><i id="hud-confiance"></i></span><span id="hud-confiance-val">50</span></div>
+    <span class="espace"></span>
+    <button class="btn secondaire" type="button" id="btn-regles" aria-label="Rappel des règles" title="Comment jouer">?</button>
+    <button class="btn secondaire" type="button" id="btn-carnet">Carnet (<span id="carnet-nb">0</span>)</button>
+    <button class="btn" type="button" id="btn-soir">Passer au soir</button>
+  </header>
+  <div class="jeu">
+    <div>
+      <nav id="zones" aria-label="Lieux du lycée"></nav>
+      <div id="scene">
+        <h2 id="scene-nom"></h2>
+        <p id="scene-decor"></p>
+        <div id="scene-pnj"></div>
+      </div>
+    </div>
+    <div id="dialogue" aria-live="polite"></div>
+    <aside id="carnet">
+      <div class="carnet-tete"><h2>Carnet</h2><button type="button" id="btn-carnet-fermer" aria-label="Fermer le carnet">×</button></div>
+      <div id="carnet-liste"></div>
+    </aside>
+  </div>
+</section>
+
+<section class="ecran" id="ecran-soir" hidden>
+  <p class="eyebrow">Fin de journée · Le groupe se réunit pour faire le point</p>
+  <h2 class="titre" style="font-size:clamp(2rem,6vw,3rem)">Qui sont les infiltrés ?</h2>
+  <p id="soir-rappel" class="regles"></p>
+  <div id="soir-grille"></div>
+  <div class="actions">
+    <button class="btn" type="button" id="btn-accuser">N'accuser personne</button>
+    <button class="btn secondaire" type="button" id="btn-retour">Revoir la journée</button>
+  </div>
+</section>
+
+<section class="ecran" id="ecran-bilan" hidden>
+  <p class="eyebrow" id="bilan-titre"></p>
+  <div id="bilan-liste"></div>
+  <p class="epilogue" id="bilan-epilogue"></p>
+  <div class="hud-bloc"><span class="hud-label" id="bilan-confiance"></span></div>
+  <span class="jauge bilan-jauge"><i id="bilan-jauge"></i></span>
+  <p class="regles" id="bilan-suite"></p>
+  <section class="final" id="bilan-final" hidden>
+    <p class="eyebrow">Bilan de la semaine</p>
+    <h2 class="titre" id="final-titre"></h2>
+    <p class="epilogue" id="final-texte"></p>
+    <p class="regles" id="final-score"></p>
+    <p class="partage" id="final-numero"></p>
+    <label class="partage" for="final-partage">Ton score, à partager</label>
+    <input id="final-partage" type="text" readonly>
+    <button class="btn secondaire" type="button" id="btn-copier">Copier mon score</button>
+  </section>
+  <div class="actions">
+    <button class="btn" type="button" id="btn-suivant" hidden>Jour suivant</button>
+    <button class="btn secondaire" type="button" id="btn-rejouer">Rejouer le jour 1</button>
+    <button class="btn secondaire" type="button" id="btn-semaine" hidden>Recommencer la semaine</button>
+  </div>
+</section>
+
+<script src="donnees.js"></script>
+<script src="game.js"></script>
+<script src="titre.js"></script>
+</body>
+</html>

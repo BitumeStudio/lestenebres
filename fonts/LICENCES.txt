@@ -1,0 +1,6 @@
+Polices incluses dans ce dossier, toutes sous licence SIL Open Font License 1.1
+(https://openfontlicense.org) :
+
+- Pixelify Sans, par Stefie Justprince
+- Silkscreen, par Jason Kottke
+- Atkinson Hyperlegible, par le Braille Institute of America
