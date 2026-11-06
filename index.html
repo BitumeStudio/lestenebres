@@ -86,7 +86,7 @@ h1, h2, h3, h4 { font-family: var(--f-texte); font-weight: 700; margin: 0; text-
 .regle-points { display: flex; gap: 8px; }
 .regle-points i { width: 12px; height: 12px; background: var(--mur); }
 .regle-points i.on { background: var(--sodium); }
-#btn-regles { padding: 14px 16px; }
+#btn-regles, #btn-son { padding: 14px 16px; }
 
 /* ----- Écran titre ----- */
 #ecran-titre { padding-block: 24px; display: grid; place-items: center; min-height: calc(100svh - 8px); }
@@ -303,6 +303,7 @@ h1, h2, h3, h4 { font-family: var(--f-texte); font-weight: 700; margin: 0; text-
     <div class="hud-bloc"><span class="hud-label">Actions</span><b id="hud-actions">14</b></div>
     <div class="hud-bloc"><span class="hud-label">Confiance</span><span class="jauge"><i id="hud-confiance"></i></span><span id="hud-confiance-val">50</span></div>
     <span class="espace"></span>
+    <button class="btn secondaire" type="button" id="btn-son" aria-label="Son"> </button>
     <button class="btn secondaire" type="button" id="btn-regles" aria-label="Rappel des règles" title="Comment jouer">?</button>
     <button class="btn secondaire" type="button" id="btn-carnet">Carnet (<span id="carnet-nb">0</span>)</button>
     <button class="btn" type="button" id="btn-soir">Terminer la journée</button>

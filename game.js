@@ -269,19 +269,49 @@
     if (S.actions === 0) sonnerie();
   }
 
-  function sonnerie() {
-    try {
-      const A = window.AudioContext || window.webkitAudioContext;
-      const ctx = new A();
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.type = "square"; o.frequency.value = 880;
-      g.gain.value = 0.05;
-      o.connect(g); g.connect(ctx.destination);
-      o.start();
-      for (let t = 0; t < 1.4; t += 0.1) g.gain.setValueAtTime(t * 10 % 2 < 1 ? 0.05 : 0, ctx.currentTime + t);
-      o.stop(ctx.currentTime + 1.4);
-    } catch (e) { /* pas de son, tant pis */ }
-  }
+  // ---------- Sons (synthétisés, aucun fichier) ----------
+  const SON = (() => {
+    let ctx = null, actif = true;
+    try { actif = localStorage.getItem("bt-son") !== "0"; } catch (e) { /* tant pis */ }
+    const C = () => {
+      if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+      if (ctx.state === "suspended") ctx.resume();
+      return ctx;
+    };
+    // note : fréquence, durée, forme, volume, retard, fréquence finale
+    function note(f, d, type, vol, t0, fin) {
+      const c = actif && C();
+      if (!c) return;
+      try {
+        const t = c.currentTime + (t0 || 0);
+        const o = c.createOscillator(), g = c.createGain();
+        o.type = type || "square";
+        o.frequency.setValueAtTime(f, t);
+        if (fin) o.frequency.linearRampToValueAtTime(fin, t + d);
+        g.gain.setValueAtTime(vol || 0.04, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+        o.connect(g); g.connect(c.destination);
+        o.start(t); o.stop(t + d + 0.03);
+      } catch (e) { /* pas de son, tant pis */ }
+    }
+    return {
+      get actif() { return actif; },
+      basculer() {
+        actif = !actif;
+        try { localStorage.setItem("bt-son", actif ? "1" : "0"); } catch (e) { /* tant pis */ }
+        if (actif) this.clic();
+        return actif;
+      },
+      clic() { note(520, 0.05, "square", 0.035); },
+      retour() { note(380, 0.06, "square", 0.03); },
+      choisir() { note(440, 0.05, "square", 0.035); note(660, 0.07, "square", 0.035, 0.05); },
+      carnet() { note(300, 0.12, "triangle", 0.05, 0, 520); },
+      debut() { [262, 330, 392, 523].forEach((f, k) => note(f, 0.09, "square", 0.04, k * 0.09)); note(784, 0.28, "square", 0.04, 0.38); },
+      fin() { [784, 659, 523, 392].forEach((f, k) => note(f, 0.1, "square", 0.04, k * 0.1)); note(262, 0.12, "square", 0.04, 0.42); note(196, 0.3, "square", 0.04, 0.55); },
+      verdict(n) { n ? (note(262, 0.12, "square", 0.04), note(330, 0.12, "square", 0.04, 0.12), note(392, 0.25, "square", 0.04, 0.24)) : note(220, 0.3, "triangle", 0.05, 0, 160); },
+    };
+  })();
+  const sonnerie = () => SON.fin();
 
   // ---------- Affichage ----------
   function ecran(id) {
@@ -719,6 +749,24 @@
     $("#btn-regle-passer").onclick = () => ecran(regleRetour);
     $("#btn-regles").onclick = () => ouvrirRegles("ecran-jeu");
     renderRegle();
+    // sons des boutons : un clic discret partout, des sons propres au début et à la fin de journée
+    document.addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b || b.disabled || b.id === "btn-inserer") return;
+      const id = b.id;
+      if (id === "btn-commencer") SON.debut();
+      else if (id === "btn-soir") { if (S.actions > 0) SON.fin(); else SON.clic(); }
+      else if (id === "btn-accuser") SON.verdict(S.accuses && S.accuses.size);
+      else if (id === "btn-carnet" || id === "btn-carnet-fermer") SON.carnet();
+      else if (id === "btn-retour" || id === "btn-regle-passer") SON.retour();
+      else if (id === "btn-son") return;
+      else if (b.closest("#dialogue")) SON.choisir();
+      else SON.clic();
+    });
+    const sonBtn = $("#btn-son");
+    const majSon = () => { sonBtn.textContent = SON.actif ? "\u{1F50A}" : "\u{1F507}"; sonBtn.setAttribute("aria-pressed", SON.actif); sonBtn.title = SON.actif ? "Couper le son" : "Remettre le son"; };
+    sonBtn.onclick = () => { SON.basculer(); majSon(); };
+    majSon();
     $("#btn-commencer").onclick = lancerJour;
     $("#btn-soir").onclick = soir;
     $("#btn-retour").onclick = () => ecran("ecran-jeu");
